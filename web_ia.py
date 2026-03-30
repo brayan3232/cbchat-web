@@ -51,9 +51,11 @@ st.markdown("""
 
 st.title("💬 CBCHAT")
 
-# --- CONEXIÓN ---
-# Recuerda verificar tu link de localtunnel cada vez que inicies
-client = OpenAI(base_url="https://fruity-hotels-warn.loca.lt/v1", api_key="lm-studio")
+# --- CONEXIÓN CON GROQ (Rápida y estable) ---
+client = OpenAI(
+    base_url="https://api.groq.com/openai/v1", 
+    api_key="PEGA_AQUÍ_TU_LLAVE_DE_GROQ"
+)
 
 # --- BARRA LATERAL ---
 with st.sidebar:
