@@ -55,7 +55,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- CONEXIÓN CON TU IA (LM STUDIO) ---
-client = OpenAI(base_url="https://shaky-beds-chew.loca.lt/v1", api_key="lm-studio")
+client = OpenAI(base_url="https://fruity-hotels-warn.loca.lt/v1", api_key="lm-studio")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
