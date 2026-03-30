@@ -2,52 +2,67 @@ import streamlit as st
 from openai import OpenAI
 
 # Configuración de la página
-st.set_page_config(page_title="CBCHAT V2", page_icon="🤖", layout="centered")
+st.set_page_config(page_title="CBCHAT Pro", page_icon="💬", layout="centered")
 
-# --- ESTILO CSS AVANZADO ---
+# --- ESTILO IPHONE (iOS) ---
 st.markdown("""
     <style>
-    .main { background-color: #f5f7f9; }
-    .stChatFloatingInputContainer { bottom: 20px; }
+    /* Fondo claro estilo Apple */
+    .main { background-color: #ffffff; }
     
-    /* Burbujas de chat redondas */
+    /* Contenedor de mensajes */
     [data-testid="stChatMessage"] {
+        padding: 10px 15px;
         border-radius: 20px;
-        padding: 15px;
-        margin-bottom: 10px;
-        max-width: 80%;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        margin-bottom: 8px;
+        width: fit-content;
+        max-width: 75%;
+    }
+
+    /* MENSAJE DEL USUARIO (AZUL iMessage) */
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+        margin-left: auto;
+        background-color: #007AFF !important; /* Azul iPhone */
+        color: white !important;
+        border-bottom-right-radius: 4px;
     }
     
-    /* Estilo para los botones de arriba */
-    .stButton>button {
-        border-radius: 20px;
-        border: 1px solid #e0e0e0;
-        background-color: white;
-        transition: all 0.3s;
+    /* MENSAJE DEL ASISTENTE (GRIS Apple) */
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) {
+        margin-right: auto;
+        background-color: #E9E9EB !important; /* Gris claro iPhone */
+        color: black !important;
+        border-bottom-left-radius: 4px;
     }
-    .stButton>button:hover {
-        border-color: #007bff;
-        color: #007bff;
+
+    /* Esconder iconos y labels para que parezca chat real */
+    [data-testid="stChatMessageAvatarUser"], [data-testid="stChatMessageAvatarAssistant"] {
+        display: none;
+    }
+    
+    /* Estilo del input */
+    .stChatInputContainer {
+        padding-bottom: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🤖 CBCHAT")
-st.markdown("<p style='text-align: center; color: #666;'>Inteligencia Artificial con soporte visual</p>", unsafe_allow_html=True)
+st.title("💬 CBCHAT")
 
-# --- CONEXIÓN CON TU PC ---
-# RECUERDA: Si el link de localtunnel cambia, actualízalo aquí abajo.
+# --- CONEXIÓN ---
+# Recuerda verificar tu link de localtunnel cada vez que inicies
 client = OpenAI(base_url="https://fruity-hotels-warn.loca.lt/v1", api_key="lm-studio")
 
-# --- SOPORTE PARA FOTOS ---
+# --- BARRA LATERAL ---
 with st.sidebar:
-    st.header("Multimedia")
-    foto_subida = st.file_uploader("Subir una imagen", type=["png", "jpg", "jpeg"])
+    st.header("📸 Multimedia")
+    foto_subida = st.file_uploader("Subir foto", type=["png", "jpg", "jpeg"])
     if foto_subida:
-        st.image(foto_subida, caption="Imagen cargada", use_container_width=True)
-        st.success("Imagen lista para procesar (necesitas un modelo Vision en LM Studio)")
+        st.image(foto_subida)
 
-# Historial de chat
+# Historial
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -56,28 +71,36 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Input de usuario
-if prompt := st.chat_input("Escribe tu mensaje aquí..."):
+# Chat Input
+if prompt := st.chat_input("Escribe un mensaje..."):
+    # 1. Mostrar mensaje del usuario
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    # 2. Efecto "Pensando..." estilo iPhone
     with st.chat_message("assistant"):
-        response_placeholder = st.empty()
-        full_response = ""
-        
-        try:
-            completion = client.chat.completions.create(
-                model="local-model", # LM Studio usa el que esté cargado
-                messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
-                stream=True,
-            )
-            for chunk in completion:
-                if chunk.choices[0].delta.content:
-                    full_response += chunk.choices[0].delta.content
-                    response_placeholder.markdown(full_response + "▌")
-            response_placeholder.markdown(full_response)
-        except Exception as e:
-            st.error("Error: ¿El túnel sigue abierto?")
+        with st.status("✨ Pensando...", expanded=False) as status:
+            response_placeholder = st.empty()
+            full_response = ""
+            
+            try:
+                completion = client.chat.completions.create(
+                    model="local-model",
+                    messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
+                    stream=True,
+                )
+                
+                # Una vez que empieza a responder, el status cambia
+                for chunk in completion:
+                    if chunk.choices[0].delta.content:
+                        full_response += chunk.choices[0].delta.content
+                        response_placeholder.markdown(full_response)
+                
+                status.update(label="✅ Respuesta lista", state="complete", expanded=False)
+                
+            except Exception as e:
+                status.update(label="❌ Error de conexión", state="error")
+                st.error("Revisa que LM Studio y el Túnel estén abiertos.")
             
     st.session_state.messages.append({"role": "assistant", "content": full_response})
