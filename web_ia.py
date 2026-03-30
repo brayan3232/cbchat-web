@@ -54,7 +54,7 @@ st.title("💬 CBCHAT")
 # --- CONEXIÓN CON GROQ (Rápida y estable) ---
 client = OpenAI(
     base_url="https://api.groq.com/openai/v1", 
-    api_key="PEGA_AQUÍ_TU_LLAVE_DE_GROQ"
+    api_key="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"
 )
 
 # --- BARRA LATERAL ---
